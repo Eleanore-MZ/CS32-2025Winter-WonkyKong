@@ -15,8 +15,59 @@ StudentWorld::StudentWorld(string assetPath)
 {
 }
 
+StudentWorld::~StudentWorld()
+{
+    std::vector<Actor*>::iterator it;
+    it = m_actorList.begin();
+    while (it != m_actorList.end())
+    {
+        delete *it;
+        it = m_actorList.erase(it);
+    }
+    delete m_player;
+}
+
 int StudentWorld::init()
 {
+    Level lev(assetPath());
+    string curLevel = "level00.txt";
+    Level::LoadResult result = lev.loadLevel(curLevel);
+    if (result == Level::load_fail_file_not_found || result == Level::load_fail_bad_format)
+    {
+        cout << "Something bad happened\n";
+        return GWSTATUS_LEVEL_ERROR;
+    }
+
+    for (int x = 0; x < VIEW_WIDTH; x++)
+    {
+        for (int y = 0; y < VIEW_HEIGHT; y++)
+        {
+            Level::MazeEntry item = lev.getContentsOf(x, y);
+            switch (item)
+            {
+            case Level::player:
+                std::cerr << "Player at (" << y << "," << x << ")" << std::endl;
+                m_player = new Player(x, y);
+                break;
+            case Level::floor:
+                std::cerr << "Floor at (" << y << "," << x << ")" << std::endl;
+                m_actorList.push_back(new Floor(x, y));
+                break;
+            case Level::ladder:
+                m_actorList.push_back(new Ladder(x, y));
+                break;
+            case Level::extra_life :
+                m_actorList.push_back(new ExtraLifeGoodie(x, y));
+                break;
+            case Level::garlic:
+                m_actorList.push_back(new GarlicGoodie(x, y));
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -24,8 +75,15 @@ int StudentWorld::move()
 {
     // This code is here merely to allow the game to build, run, and terminate after you type q
 
-    setGameStatText("Game will end when you type q");
+    setGameStatText("Score: " + to_string(m_score) + "    Level: " + to_string(m_level)
+        + "    Lives: " + to_string(m_lives) + "    Burps: "+to_string(m_player->burps()));
     
+    for (auto actor : m_actorList)
+    {
+        if (actor->is_alive())
+            actor->doSomething();
+    }
+
     return GWSTATUS_CONTINUE_GAME;
 }
 
