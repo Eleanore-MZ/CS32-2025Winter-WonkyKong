@@ -47,20 +47,22 @@ int StudentWorld::init()
             {
             case Level::player:
                 std::cerr << "Player at (" << y << "," << x << ")" << std::endl;
-                m_player = new Player(x, y);
+                m_player = new Player(this, x, y);
                 break;
             case Level::floor:
                 std::cerr << "Floor at (" << y << "," << x << ")" << std::endl;
-                m_actorList.push_back(new Floor(x, y));
+                m_actorList.push_back(new Floor(this, x, y));
+                m_maze[y][x] = item;
                 break;
             case Level::ladder:
-                m_actorList.push_back(new Ladder(x, y));
+                m_actorList.push_back(new Ladder(this, x, y));
+                m_maze[y][x] = item;
                 break;
             case Level::extra_life :
-                m_actorList.push_back(new ExtraLifeGoodie(x, y));
+                m_actorList.push_back(new ExtraLifeGoodie(this, x, y));
                 break;
             case Level::garlic:
-                m_actorList.push_back(new GarlicGoodie(x, y));
+                m_actorList.push_back(new GarlicGoodie(this, x, y));
                 break;
             default:
                 break;
@@ -83,10 +85,19 @@ int StudentWorld::move()
         if (actor->is_alive())
             actor->doSomething();
     }
+    if (m_player->is_alive())
+        m_player->doSomething();
 
     return GWSTATUS_CONTINUE_GAME;
 }
 
 void StudentWorld::cleanUp()
 {
+}
+
+bool StudentWorld::is_blocked(int x, int y)
+{
+    if (m_maze[y][x] == Level::floor)
+        return true;
+    return false;
 }

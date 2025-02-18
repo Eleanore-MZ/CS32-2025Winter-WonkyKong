@@ -18,12 +18,14 @@ public:
   virtual int init();
   virtual int move();
   virtual void cleanUp();
+  bool is_blocked(int x, int y);
 private:
 	std::vector <Actor*> m_actorList;
 	Player* m_player;
 	int m_score = 0;
 	int m_lives = 3;
 	int m_level = 0;
+	Level::MazeEntry m_maze[VIEW_HEIGHT][VIEW_WIDTH];
 };
 
 #endif // STUDENTWORLD_H_
