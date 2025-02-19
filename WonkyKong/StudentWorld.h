@@ -18,7 +18,15 @@ public:
   virtual int init();
   virtual int move();
   virtual void cleanUp();
-  bool is_blocked(int x, int y);
+
+  bool is_an_item(int x, int y, Level::MazeEntry item)
+  {
+	  if (m_maze[y][x] == item)
+		  return true;
+	  return false;
+  }
+  
+
 private:
 	std::vector <Actor*> m_actorList;
 	Player* m_player;

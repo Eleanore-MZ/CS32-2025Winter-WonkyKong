@@ -78,26 +78,20 @@ int StudentWorld::move()
     // This code is here merely to allow the game to build, run, and terminate after you type q
 
     setGameStatText("Score: " + to_string(m_score) + "    Level: " + to_string(m_level)
-        + "    Lives: " + to_string(m_lives) + "    Burps: "+to_string(m_player->burps()));
+        + "    Lives: " + to_string(m_lives) + "    Burps: "+to_string(m_player->getBurps()));
     
     for (auto actor : m_actorList)
     {
         if (actor->is_alive())
             actor->doSomething();
     }
-    if (m_player->is_alive())
-        m_player->doSomething();
+    m_player->doSomething();
+    
+
 
     return GWSTATUS_CONTINUE_GAME;
 }
 
 void StudentWorld::cleanUp()
 {
-}
-
-bool StudentWorld::is_blocked(int x, int y)
-{
-    if (m_maze[y][x] == Level::floor)
-        return true;
-    return false;
 }

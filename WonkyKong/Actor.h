@@ -114,11 +114,21 @@ public:
 	Player(StudentWorld* world, int startX, int startY)
 		: MovableActor(world, IID_PLAYER, startX, startY, right) { };
 	virtual void doSomething();
-	int burps() { return m_burps; }
+
+	int getBurps() { return m_burps; }
+	bool is_frozen() { return m_frozen; }
+	bool is_jumping() { return m_jumping; }
+	
 	void keyPressed(int key);
+	void jumpSequence(int tick);
+	void terminateJump() { m_jump_tick = -1; m_jumping = false; }
+	
 
 private:
 	int m_burps = 0;
+	bool m_frozen = false;
+	bool m_jumping = false;
+	int m_jump_tick = -1;
 };
 
 //************ENEMY ACTOR**************//
