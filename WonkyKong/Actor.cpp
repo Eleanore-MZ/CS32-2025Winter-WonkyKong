@@ -3,6 +3,9 @@
 
 // Students:  Add code to this file, Actor.h, StudentWorld.h, and StudentWorld.cpp
 
+
+/*********PLAYER IMPLEMENTATION*********/
+
 void Player::doSomething()
 {
 	if (!is_alive()) return;
@@ -88,8 +91,16 @@ void Player::keyPressed(int key)
 		if (getBurps() != 0)
 		{
 			// Play the Burp sound effect (SOUND_BURP)
+			getWorld()->playSound(SOUND_BURP);
+
 			// Create a new Burp object in the square immediately adjacent to
-			// the Player in the direction the Player is currently facing and add it to the game.
+			// the Player in the direction the Player is currently facing and 
+			// add it to the game
+
+			int newX = getX(), newY = getY();
+			getPositionInThisDirection(getDirection(), 1, newX, newY);
+			getWorld()->addPlayer(new Burp(getWorld(), newX, newY, getDirection()));
+
 			m_burps--;
 		}
 		break;
@@ -132,4 +143,49 @@ void Player::jumpSequence(int tick)
 		break;
 	default: break;
 	}
+}
+
+/*********EXTRALIFEGOODIE IMPLEMENTATION*********/
+
+void ExtraLifeGoodie::doSomething()
+{
+	if (!is_alive()) return;
+	if (getX() == getWorld()->getPlayerXPosition()
+		&& getY() == getWorld()->getPlayerYPosition())
+	{
+		// Inform the StudentWorld object that the user is to receive 50 more points.
+		// Give the Player one extra life
+		giveBonus();
+		// Set its own state to dead(so that it will be removed from the game by the
+		// StudentWorld object at the end of the current tick).
+		set_dead();
+		// Play a sound effect to indicate that the Player picked up the goodie :SOUND_GOT_GOODIE.
+		getWorld()->playSound(SOUND_GOT_GOODIE);
+	}
+}
+
+void ExtraLifeGoodie::giveBonus()
+{
+	getWorld()->receivePoint(getPoint());
+	getWorld()->receiveLife(getLife());
+}
+
+
+/*********GARLICGOODIE IMPLEMENTATION*********/
+void GarlicGoodie::doSomething()
+{
+	if (!is_alive()) return;
+	if (getX() == getWorld()->getPlayerXPosition()
+		&& getY() == getWorld()->getPlayerYPosition())
+	{
+		giveBonus();
+		set_dead();
+		getWorld()->playSound(SOUND_GOT_GOODIE);
+	}
+}
+
+void GarlicGoodie::giveBonus()
+{
+	getWorld()->receivePoint(getPoint());
+	getWorld()->receiveBurp(getBurp());
 }

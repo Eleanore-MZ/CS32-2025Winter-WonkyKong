@@ -13,7 +13,7 @@ class Actor:public GraphObject
 public:
 	Actor(StudentWorld* world, int imageID, int startX, int startY, int dir = 0, bool alive = true) 
 		:GraphObject(imageID, startX, startY, dir), m_alive(alive), m_world(world) {}
-	virtual void doSomething() { return; } // change to pure virtual!!!
+	virtual void doSomething() = 0; // change to pure virtual!!!
 	bool is_alive() { return m_alive; }
 	void set_dead() { m_alive = false; }
 	StudentWorld* getWorld() { return m_world; }
@@ -54,11 +54,14 @@ class Goodie :public ImmovableActor
 {
 public:
 	Goodie(StudentWorld* world, int imageID, int startX, int startY, int bonusPoint) 
-		:ImmovableActor(world, imageID, startX, startY) {}
+		:ImmovableActor(world, imageID, startX, startY),m_bonusPoint(bonusPoint) {}
 	virtual void doSomething() {}
+	
+protected:
+	int getPoint() { return m_bonusPoint; }
 	virtual void giveBonus() {}
 private:
-	int bonusPoint;
+	int m_bonusPoint;
 };
 
 class ExtraLifeGoodie :public Goodie
@@ -66,10 +69,12 @@ class ExtraLifeGoodie :public Goodie
 public:
 	ExtraLifeGoodie(StudentWorld* world, int startX, int startY)
 		:Goodie(world, IID_EXTRA_LIFE_GOODIE, startX, startY, 50) {}
-	void doSoemthing() {}
-	void giveBonus() {}
+	void doSomething();
+protected:
+	void giveBonus();
+	int getLife() { return m_bonusLife; }
 private:
-	int bonusLife = 1;
+	int m_bonusLife = 1;
 };
 
 class GarlicGoodie :public Goodie
@@ -77,20 +82,28 @@ class GarlicGoodie :public Goodie
 public:
 	GarlicGoodie(StudentWorld* world, int startX, int startY) 
 		:Goodie(world, IID_GARLIC_GOODIE, startX, startY, 25) {}
-	void doSoemthing() {}
-	void giveBonus() {}
+	void doSomething();
+protected:
+	void giveBonus();
+	int getBurp() { return m_bonusBurp; }
 private:
-	int bonusBurp = 5;
+	int m_bonusBurp = 5;
 };
 
 class Attack :public ImmovableActor
 {
-
+public:
+	Attack(StudentWorld* world, int imageID, int startX, int startY, int dir) 
+		:ImmovableActor(world, imageID, startX, startY, dir) {}
 };
 
 class Burp :public Attack
 {
-
+public:
+	Burp(StudentWorld* world, int startX, int startY, int dir)
+		:Attack(world, IID_BURP, startX, startY, dir) {}
+private:
+	int remaining_tick = 5;
 };
 
 class Bonfire :public Attack
@@ -116,6 +129,8 @@ public:
 	virtual void doSomething();
 
 	int getBurps() { return m_burps; }
+	void PlayerReceiveBurp(int x) { m_burps += x; }
+
 	bool is_frozen() { return m_frozen; }
 	bool is_jumping() { return m_jumping; }
 	

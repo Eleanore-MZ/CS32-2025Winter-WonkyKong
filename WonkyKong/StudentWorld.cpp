@@ -13,18 +13,12 @@ GameWorld* createStudentWorld(string assetPath)
 StudentWorld::StudentWorld(string assetPath)
 : GameWorld(assetPath)
 {
+
 }
 
 StudentWorld::~StudentWorld()
 {
-    std::vector<Actor*>::iterator it;
-    it = m_actorList.begin();
-    while (it != m_actorList.end())
-    {
-        delete *it;
-        it = m_actorList.erase(it);
-    }
-    delete m_player;
+    cleanUp();
 }
 
 int StudentWorld::init()
@@ -77,9 +71,11 @@ int StudentWorld::move()
 {
     // This code is here merely to allow the game to build, run, and terminate after you type q
 
+    // update display text
     setGameStatText("Score: " + to_string(m_score) + "    Level: " + to_string(m_level)
         + "    Lives: " + to_string(m_lives) + "    Burps: "+to_string(m_player->getBurps()));
     
+    // ask each actor to do something
     for (auto actor : m_actorList)
     {
         if (actor->is_alive())
@@ -87,11 +83,24 @@ int StudentWorld::move()
     }
     m_player->doSomething();
     
-
+    // delete dead actors
+    auto actor = m_actorList.begin();
+    while (actor != m_actorList.end())
+    {
+        if (!((*actor)->is_alive()))
+        {
+            delete* actor;
+            actor = m_actorList.erase(actor);
+        }
+        else actor++;
+    }
 
     return GWSTATUS_CONTINUE_GAME;
 }
 
 void StudentWorld::cleanUp()
 {
+    for (auto actor : m_actorList)
+        delete actor;
+    delete m_player;
 }

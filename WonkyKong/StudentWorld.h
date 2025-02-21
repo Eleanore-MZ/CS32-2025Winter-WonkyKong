@@ -25,7 +25,15 @@ public:
 		  return true;
 	  return false;
   }
+
+  int getPlayerXPosition() { return m_player->getX(); }
+  int getPlayerYPosition() { return m_player->getY(); }
+
+  void receivePoint(int x) { m_score += x; }
+  void receiveLife(int x) { m_lives += x; }
+  void receiveBurp(int x) { m_player->PlayerReceiveBurp(x); }
   
+  void addPlayer(Actor* newActor) { m_actorList.push_back(newActor); }
 
 private:
 	std::vector <Actor*> m_actorList;
