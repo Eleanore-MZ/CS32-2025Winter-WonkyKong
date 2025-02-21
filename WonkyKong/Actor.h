@@ -16,6 +16,9 @@ public:
 	virtual void doSomething() = 0; // change to pure virtual!!!
 	bool is_alive() { return m_alive; }
 	void set_dead() { m_alive = false; }
+	virtual bool canAttack(Actor* attacked) { return false; }
+	virtual bool isEnemy() { return false; }
+	virtual bool isBarreal() { return false; }
 	StudentWorld* getWorld() { return m_world; }
 private:
 	bool m_alive;
@@ -29,7 +32,7 @@ class ImmovableActor :public Actor
 public:
 	ImmovableActor(StudentWorld* world, int imageID, int startX, int startY, int dir = none) 
 		:Actor(world,imageID, startX, startY, dir, true) {}
-	virtual void doSomething() {}
+	virtual void doSomething() = 0;
 private:
 };
 
@@ -95,6 +98,7 @@ class Attack :public ImmovableActor
 public:
 	Attack(StudentWorld* world, int imageID, int startX, int startY, int dir) 
 		:ImmovableActor(world, imageID, startX, startY, dir) {}
+	virtual void attack() {}
 };
 
 class Burp :public Attack
@@ -102,13 +106,21 @@ class Burp :public Attack
 public:
 	Burp(StudentWorld* world, int startX, int startY, int dir)
 		:Attack(world, IID_BURP, startX, startY, dir) {}
+	void doSomething();
+	bool canAttack(Actor* attacked) { return attacked->isEnemy(); }
+	void attack();
+
 private:
 	int remaining_tick = 5;
 };
 
 class Bonfire :public Attack
 {
-
+public:
+	Bonfire(StudentWorld* world, int startX, int startY)
+		:Attack(world, IID_BONFIRE, startX,startY,-1) {}
+	void doSomething();
+	void attack();
 };
 
 //************MOVABLE ACTOR**************//
@@ -127,14 +139,17 @@ public:
 	Player(StudentWorld* world, int startX, int startY)
 		: MovableActor(world, IID_PLAYER, startX, startY, right) { };
 	virtual void doSomething();
+	void keyPressed(int key);
 
 	int getBurps() { return m_burps; }
 	void PlayerReceiveBurp(int x) { m_burps += x; }
 
+	// freeze
 	bool is_frozen() { return m_frozen; }
+	void set_frozen() { m_frozen = true; }
+
+	// jump
 	bool is_jumping() { return m_jumping; }
-	
-	void keyPressed(int key);
 	void jumpSequence(int tick);
 	void terminateJump() { m_jump_tick = -1; m_jumping = false; }
 	
@@ -150,27 +165,48 @@ private:
 
 class Enemy :public MovableActor
 {
-	
+public:
+	Enemy(StudentWorld* world, int imageID, int startX, int startY, int dir)
+		:MovableActor(world, imageID, startX, startY, dir) {}
+	bool isEnemy() { return true; }
 };
 
 class Fireball :public Enemy
 {
-
+public:
+	Fireball(StudentWorld* world, int startX, int startY)
+		:Enemy(world, IID_FIREBALL, startX, startY, randInt(0, 1) * 180) {}
+	void doSomething();
 };
 
 class Koopa :public Enemy
 {
-
+public:
+	Koopa(StudentWorld* world, int startX, int startY)
+		:Enemy(world, IID_KOOPA, startX, startY, randInt(0, 1) * 180) {}
+	void doSomething();
+private:
+	int m_freeze_cooldown_timer = 0;
+	int m_tick_timer = 0;
 };
 
 class Barrel :public Enemy
 {
-
+public:
+	Barrel(StudentWorld* world, int startX, int startY, int dir)
+		:Enemy(world, IID_BARREL, startX, startY, dir) {}
+	bool isBarrel() { return true; }
+	void doSomething();
 };
 
 class Kong :public Enemy
 {
-
+public:
+	Kong(StudentWorld* world, int startX, int startY, int dir)
+		:Enemy(world, IID_KONG, startX, startY, dir) {}
+	void doSomething();
+private:
+	bool flee = false;
 };
 
 #endif // ACTOR_H_

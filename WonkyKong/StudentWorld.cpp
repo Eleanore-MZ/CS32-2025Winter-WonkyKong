@@ -58,6 +58,21 @@ int StudentWorld::init()
             case Level::garlic:
                 m_actorList.push_back(new GarlicGoodie(this, x, y));
                 break;
+            case Level::bonfire:
+                m_actorList.push_back(new Bonfire(this, x, y));
+                break;
+            case Level::fireball:
+                m_actorList.push_back(new Fireball(this, x, y));
+                break;
+            case Level::koopa:
+                m_actorList.push_back(new Koopa(this, x, y));
+                break;
+            case Level::left_kong:
+                m_actorList.push_back(new Kong(this, x, y, 0));
+                break;
+            case Level::right_kong:
+                m_actorList.push_back(new Kong(this, x, y, 180));
+                break;
             default:
                 break;
             }
@@ -72,8 +87,8 @@ int StudentWorld::move()
     // This code is here merely to allow the game to build, run, and terminate after you type q
 
     // update display text
-    setGameStatText("Score: " + to_string(m_score) + "    Level: " + to_string(m_level)
-        + "    Lives: " + to_string(m_lives) + "    Burps: "+to_string(m_player->getBurps()));
+    setGameStatText("Score: " + to_string(getScore()) + "    Level: " + to_string(getLevel())
+        + "    Lives: " + to_string(getLives()) + "    Burps: "+to_string(m_player->getBurps()));
     
     // ask each actor to do something
     for (auto actor : m_actorList)
@@ -95,6 +110,9 @@ int StudentWorld::move()
         else actor++;
     }
 
+    if (!(m_player->is_alive()))
+        return GWSTATUS_PLAYER_DIED;
+
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -102,5 +120,19 @@ void StudentWorld::cleanUp()
 {
     for (auto actor : m_actorList)
         delete actor;
+    m_actorList.clear();
     delete m_player;
+    m_player = nullptr;
+}
+
+void StudentWorld::atSameGrid(Actor* attacker)
+{
+    for (auto actor : m_actorList)
+    {
+        if (actor->getX() == attacker->getX() && actor->getY() == attacker->getY()
+            && attacker->canAttack(actor))
+        {
+            actor->set_dead();
+        }
+    }
 }

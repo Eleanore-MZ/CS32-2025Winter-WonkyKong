@@ -19,28 +19,17 @@ public:
   virtual int move();
   virtual void cleanUp();
 
-  bool is_an_item(int x, int y, Level::MazeEntry item)
-  {
-	  if (m_maze[y][x] == item)
-		  return true;
-	  return false;
-  }
-
-  int getPlayerXPosition() { return m_player->getX(); }
-  int getPlayerYPosition() { return m_player->getY(); }
-
-  void receivePoint(int x) { m_score += x; }
-  void receiveLife(int x) { m_lives += x; }
+  Level::MazeEntry getItem(int x, int y) { return m_maze[y][x]; }
+  void addActor(Actor* newActor) { m_actorList.push_back(newActor); }
+  Player* getPlayer() { return m_player; }
   void receiveBurp(int x) { m_player->PlayerReceiveBurp(x); }
-  
-  void addPlayer(Actor* newActor) { m_actorList.push_back(newActor); }
+
+  void atSameGrid(Actor* attacker);
+
 
 private:
 	std::vector <Actor*> m_actorList;
 	Player* m_player;
-	int m_score = 0;
-	int m_lives = 3;
-	int m_level = 0;
 	Level::MazeEntry m_maze[VIEW_HEIGHT][VIEW_WIDTH];
 };
 
