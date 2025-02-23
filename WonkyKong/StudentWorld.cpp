@@ -3,6 +3,13 @@
 #include <string>
 using namespace std;
 
+/***********
+KNOWN BUGS
+    when bonfire kills barrel, player would get points
+
+************/
+
+
 GameWorld* createStudentWorld(string assetPath)
 {
     return new StudentWorld(assetPath);
@@ -23,8 +30,12 @@ StudentWorld::~StudentWorld()
 
 int StudentWorld::init()
 {
+    string curLevel = "level";
+    m_level = getLevel();
+    if (m_level < 10)
+        curLevel += "0" + to_string(m_level) + ".txt";
+    else curLevel += to_string(m_level) + ".txt";
     Level lev(assetPath());
-    string curLevel = "level00.txt";
     Level::LoadResult result = lev.loadLevel(curLevel);
     if (result == Level::load_fail_file_not_found || result == Level::load_fail_bad_format)
     {
@@ -40,11 +51,9 @@ int StudentWorld::init()
             switch (item)
             {
             case Level::player:
-                std::cerr << "Player at (" << y << "," << x << ")" << std::endl;
                 m_player = new Player(this, x, y);
                 break;
             case Level::floor:
-                std::cerr << "Floor at (" << y << "," << x << ")" << std::endl;
                 m_actorList.push_back(new Floor(this, x, y));
                 m_maze[y][x] = item;
                 break;
@@ -68,17 +77,16 @@ int StudentWorld::init()
                 m_actorList.push_back(new Koopa(this, x, y));
                 break;
             case Level::left_kong:
-                m_actorList.push_back(new Kong(this, x, y, 0));
+                m_actorList.push_back(new Kong(this, x, y, 180));
                 break;
             case Level::right_kong:
-                m_actorList.push_back(new Kong(this, x, y, 180));
+                m_actorList.push_back(new Kong(this, x, y, 0));
                 break;
             default:
                 break;
             }
         }
     }
-
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -113,6 +121,9 @@ int StudentWorld::move()
     if (!(m_player->is_alive()))
         return GWSTATUS_PLAYER_DIED;
 
+    if (m_finishedLevel)
+        return GWSTATUS_FINISHED_LEVEL;
+
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -123,6 +134,7 @@ void StudentWorld::cleanUp()
     m_actorList.clear();
     delete m_player;
     m_player = nullptr;
+    m_finishedLevel = false;
 }
 
 void StudentWorld::atSameGrid(Actor* attacker)

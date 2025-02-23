@@ -8,6 +8,7 @@ class StudentWorld;
 
 // Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
 
+
 class Actor:public GraphObject
 {
 public:
@@ -15,10 +16,10 @@ public:
 		:GraphObject(imageID, startX, startY, dir), m_alive(alive), m_world(world) {}
 	virtual void doSomething() = 0; // change to pure virtual!!!
 	bool is_alive() { return m_alive; }
-	void set_dead() { m_alive = false; }
+	virtual void set_dead() { m_alive = false; }
 	virtual bool canAttack(Actor* attacked) { return false; }
 	virtual bool isEnemy() { return false; }
-	virtual bool isBarreal() { return false; }
+	virtual bool isBarrel() { return false; }
 	StudentWorld* getWorld() { return m_world; }
 private:
 	bool m_alive;
@@ -74,10 +75,7 @@ public:
 		:Goodie(world, IID_EXTRA_LIFE_GOODIE, startX, startY, 50) {}
 	void doSomething();
 protected:
-	void giveBonus();
-	int getLife() { return m_bonusLife; }
-private:
-	int m_bonusLife = 1;
+	void set_dead();
 };
 
 class GarlicGoodie :public Goodie
@@ -87,7 +85,7 @@ public:
 		:Goodie(world, IID_GARLIC_GOODIE, startX, startY, 25) {}
 	void doSomething();
 protected:
-	void giveBonus();
+	void set_dead();
 	int getBurp() { return m_bonusBurp; }
 private:
 	int m_bonusBurp = 5;
@@ -121,6 +119,7 @@ public:
 		:Attack(world, IID_BONFIRE, startX,startY,-1) {}
 	void doSomething();
 	void attack();
+	bool canAttack(Actor* attacked) { return attacked->isBarrel(); }
 };
 
 //************MOVABLE ACTOR**************//
@@ -146,17 +145,18 @@ public:
 
 	// freeze
 	bool is_frozen() { return m_frozen; }
-	void set_frozen() { m_frozen = true; }
+	void set_frozen() { m_frozen = true; m_freeze_timer = 50; }
 
 	// jump
 	bool is_jumping() { return m_jumping; }
 	void jumpSequence(int tick);
 	void terminateJump() { m_jump_tick = -1; m_jumping = false; }
-	
 
+	void set_dead();
 private:
 	int m_burps = 0;
 	bool m_frozen = false;
+	int m_freeze_timer = 0;
 	bool m_jumping = false;
 	int m_jump_tick = -1;
 };
@@ -177,6 +177,12 @@ public:
 	Fireball(StudentWorld* world, int startX, int startY)
 		:Enemy(world, IID_FIREBALL, startX, startY, randInt(0, 1) * 180) {}
 	void doSomething();
+	void set_dead();
+	int getPoint() { return m_bonusPoint; }
+private:
+	int m_bonusPoint = 100;
+	int m_tick_timer = 0;
+	int m_climbing = 0; //0: non climbing; 1: climbing down; 2: climbing up
 };
 
 class Koopa :public Enemy
@@ -185,9 +191,12 @@ public:
 	Koopa(StudentWorld* world, int startX, int startY)
 		:Enemy(world, IID_KOOPA, startX, startY, randInt(0, 1) * 180) {}
 	void doSomething();
+	void set_dead();
+	int getPoint() { return m_bonusPoint; }
 private:
 	int m_freeze_cooldown_timer = 0;
 	int m_tick_timer = 0;
+	int m_bonusPoint = 100;
 };
 
 class Barrel :public Enemy
@@ -197,6 +206,13 @@ public:
 		:Enemy(world, IID_BARREL, startX, startY, dir) {}
 	bool isBarrel() { return true; }
 	void doSomething();
+	void set_dead();
+	int getPoint() { return m_bonusPoint; }
+	void attack();
+private:
+	int m_bonusPoint = 100;
+	int m_tick_timer = 0;
+	bool m_falling = false;
 };
 
 class Kong :public Enemy
@@ -205,8 +221,12 @@ public:
 	Kong(StudentWorld* world, int startX, int startY, int dir)
 		:Enemy(world, IID_KONG, startX, startY, dir) {}
 	void doSomething();
+	int getPoint() { return m_bonusPoint; }
 private:
-	bool flee = false;
+	bool m_fleeing = false;
+	int m_tick_timer = 0;
+	int m_barrel_timer = 0;
+	int m_bonusPoint = 1000;
 };
 
 #endif // ACTOR_H_
