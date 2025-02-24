@@ -6,7 +6,9 @@ using namespace std;
 /***********
 KNOWN BUGS
     when bonfire kills barrel, player would get points
-
+    level 1 stair on second floor, mario stays in the air   FIXED
+    doesn't change direction when RIGHT/LEFT key pressed    FIXED
+    Q: does burps get inherited into the next level?
 ************/
 
 
@@ -48,6 +50,7 @@ int StudentWorld::init()
         for (int y = 0; y < VIEW_HEIGHT; y++)
         {
             Level::MazeEntry item = lev.getContentsOf(x, y);
+            m_maze[y][x] = Level::empty;
             switch (item)
             {
             case Level::player:
@@ -120,7 +123,8 @@ int StudentWorld::move()
 
     if (!(m_player->is_alive()))
         return GWSTATUS_PLAYER_DIED;
-
+        //return GWSTATUS_FINISHED_LEVEL;
+    
     if (m_finishedLevel)
         return GWSTATUS_FINISHED_LEVEL;
 

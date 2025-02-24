@@ -44,7 +44,7 @@ void Player::keyPressed(int key)
 	{
 	case KEY_PRESS_LEFT:
 		if (getDirection() != left)	setDirection(left);
-		if (!(getWorld()->isFloor(getX() - 1, getY())))
+		else if (!(getWorld()->isFloor(getX() - 1, getY())))
 		{
 			getPositionInThisDirection(left, 1, newX, newY);
 			moveTo(newX, newY);
@@ -52,7 +52,7 @@ void Player::keyPressed(int key)
 		break;
 	case KEY_PRESS_RIGHT:
 		if (getDirection() != right) setDirection(right);
-		if (!(getWorld()->isFloor(getX() + 1, getY())))
+		else if (!(getWorld()->isFloor(getX() + 1, getY())))
 		{
 			getPositionInThisDirection(right, 1, newX, newY);
 			moveTo(newX, newY);
