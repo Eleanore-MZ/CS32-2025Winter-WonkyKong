@@ -8,7 +8,8 @@ KNOWN BUGS
     when bonfire kills barrel, player would get points
     level 1 stair on second floor, mario stays in the air   FIXED
     doesn't change direction when RIGHT/LEFT key pressed    FIXED
-    Q: does burps get inherited into the next level?
+    Q: does burps get inherited into the next level?        NOPE
+    player cannot land on a ladder in the air               FIXED
 ************/
 
 
@@ -37,8 +38,8 @@ int StudentWorld::init()
     if (m_level < 10)
         curLevel += "0" + to_string(m_level) + ".txt";
     else curLevel += to_string(m_level) + ".txt";
-    Level lev(assetPath());
-    Level::LoadResult result = lev.loadLevel(curLevel);
+    m_lev = new Level(assetPath());
+    Level::LoadResult result = m_lev->loadLevel(curLevel);
     if (result == Level::load_fail_file_not_found || result == Level::load_fail_bad_format)
     {
         cout << "Something bad happened\n";
@@ -49,8 +50,8 @@ int StudentWorld::init()
     {
         for (int y = 0; y < VIEW_HEIGHT; y++)
         {
-            Level::MazeEntry item = lev.getContentsOf(x, y);
-            m_maze[y][x] = Level::empty;
+            Level::MazeEntry item = m_lev->getContentsOf(x, y);
+            // m_maze[y][x] = Level::empty;
             switch (item)
             {
             case Level::player:
@@ -58,11 +59,11 @@ int StudentWorld::init()
                 break;
             case Level::floor:
                 m_actorList.push_back(new Floor(this, x, y));
-                m_maze[y][x] = item;
+                // m_maze[y][x] = item;
                 break;
             case Level::ladder:
                 m_actorList.push_back(new Ladder(this, x, y));
-                m_maze[y][x] = item;
+                // m_maze[y][x] = item;
                 break;
             case Level::extra_life :
                 m_actorList.push_back(new ExtraLifeGoodie(this, x, y));

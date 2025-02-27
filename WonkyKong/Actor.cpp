@@ -24,7 +24,7 @@ void Player::doSomething()
 		return;
 	}
 
-	if (!(getWorld()->isFloor(getX(), getY() - 1)) && !(getWorld()->isLadder(getX(), getY() - 1)))
+	if (!(getWorld()->isLadder(getX(), getY())) && !(getWorld()->isFloor(getX(), getY() - 1)) && !(getWorld()->isLadder(getX(), getY() - 1)))
 	{
 		// Attempt to move the Player one square downward(simulate falling).
 		moveTo(getX(), getY() - 1);
@@ -114,12 +114,13 @@ void Player::jumpSequence(int tick)
 	switch (tick)
 	{
 	case 0: 
-		if (getWorld()->isFloor(getX(), getY() + 1) || getY() + 1 >= VIEW_HEIGHT) terminateJump();
-		
+		if (getWorld()->isFloor(getX(), getY() + 1) || getY() + 1 >= VIEW_HEIGHT)
+			terminateJump();
 		else
 		{
 			moveTo(getX(), getY() + 1); 
-			if(getWorld()->isLadder(getX(), getY())) terminateJump();
+			if(getWorld()->isLadder(getX(), getY()))
+				terminateJump();
 			else m_jump_tick++;
 		}
 		break;
@@ -128,13 +129,16 @@ void Player::jumpSequence(int tick)
 	case 3:
 		getPositionInThisDirection(getDirection(), 1, newX, newY);
 		if (newX < 0 || newX >= VIEW_WIDTH || newY < 0 || newY >= VIEW_HEIGHT
-			|| getWorld()->isFloor(newX, newY))	terminateJump();
+			|| getWorld()->isFloor(newX, newY))
+			terminateJump();
 		else moveTo(newX, newY);
-		if (getWorld()->isLadder(getX(), getY())) terminateJump();
+		if (getWorld()->isLadder(getX(), getY()))
+			terminateJump();
 		else m_jump_tick++;
 		break;
 	case 4: 
-		if (getWorld()->isFloor(getX(), getY() - 1) || getY() - 1 < 0) terminateJump();
+		if (getWorld()->isFloor(getX(), getY() - 1) || getY() - 1 < 0)
+			terminateJump();
 		else
 		{
 			moveTo(getX(), getY() - 1);
@@ -217,8 +221,6 @@ void Burp::attack()
 void Bonfire::doSomething()
 {
 	increaseAnimationNumber();
-	//If the Player is on the same square as a Bonfire, 
-	// then the Bonfire must attack the Player causing them to lose a life.
 	if (getWorld()->playerAtSamePosition(getX(), getY()))
 	{
 		getWorld()->getPlayer()->set_dead();
@@ -329,6 +331,7 @@ void Barrel::doSomething()
 	// If there is a destructive entity (e.g., a Bonfire) 
 	// in the same square as the Barrel, the Barrel: 
 	// Must set its status to dead. Immediately return.
+	
 	if (!(getWorld()->isFloor(getX(), getY() - 1)))
 	{
 		moveTo(getX(), getY() - 1);

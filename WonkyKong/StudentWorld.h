@@ -19,8 +19,9 @@ public:
   virtual int move();
   virtual void cleanUp();
 
-  bool isFloor(int x, int y) { return m_maze[y][x] == Level::floor; }
-  bool isLadder(int x, int y) { return m_maze[y][x] == Level::ladder; }
+  
+  bool isFloor(int x, int y) { return (m_lev->getContentsOf(x, y)) == Level::floor; }
+  bool isLadder(int x, int y) { return (m_lev->getContentsOf(x, y)) == Level::ladder; }
 
   void addActor(Actor* newActor) { m_actorList.push_back(newActor); }
   Player* getPlayer() { return m_player; }
@@ -33,9 +34,10 @@ public:
 private:
 	std::vector <Actor*> m_actorList;
 	Player* m_player;
-	Level::MazeEntry m_maze[VIEW_HEIGHT][VIEW_WIDTH];
+	// Level::MazeEntry m_maze[VIEW_HEIGHT][VIEW_WIDTH];
 	bool m_finishedLevel = false;
 	int m_level = 0;
+	Level* m_lev;
 };
 
 #endif // STUDENTWORLD_H_

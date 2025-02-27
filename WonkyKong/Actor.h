@@ -20,10 +20,12 @@ public:
 	virtual bool canAttack(Actor* attacked) { return false; }
 	virtual bool isEnemy() { return false; }
 	virtual bool isBarrel() { return false; }
+	
 	StudentWorld* getWorld() { return m_world; }
 private:
 	bool m_alive;
 	StudentWorld* m_world;
+	bool m_canGiveBonus = false;
 };
 
 //************IMMOVABLE ACTOR**************//
