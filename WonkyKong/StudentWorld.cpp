@@ -1,15 +1,17 @@
 #include "StudentWorld.h"
 #include "GameConstants.h"
 #include <string>
+#include <sstream>
+#include <iomanip>
 using namespace std;
 
 /***********
 KNOWN BUGS
-    when bonfire kills barrel, player would get points
+    when bonfire kills barrel, player would get points      FIXED
     level 1 stair on second floor, mario stays in the air   FIXED
     doesn't change direction when RIGHT/LEFT key pressed    FIXED
-    Q: does burps get inherited into the next level?        NOPE
     player cannot land on a ladder in the air               FIXED
+    text display format                                     FIXED
 ************/
 
 
@@ -38,11 +40,20 @@ int StudentWorld::init()
     if (m_level < 10)
         curLevel += "0" + to_string(m_level) + ".txt";
     else curLevel += to_string(m_level) + ".txt";
+
+    if (m_level >= 100)
+        return GWSTATUS_PLAYER_WON;
+
     m_lev = new Level(assetPath());
     Level::LoadResult result = m_lev->loadLevel(curLevel);
-    if (result == Level::load_fail_file_not_found || result == Level::load_fail_bad_format)
+    if (result == Level::load_fail_file_not_found)
     {
         cout << "Something bad happened\n";
+        return GWSTATUS_PLAYER_WON;
+    }
+
+    if (result == Level::load_fail_bad_format)
+    {
         return GWSTATUS_LEVEL_ERROR;
     }
 
@@ -94,21 +105,25 @@ int StudentWorld::init()
     return GWSTATUS_CONTINUE_GAME;
 }
 
+
 int StudentWorld::move()
 {
     // This code is here merely to allow the game to build, run, and terminate after you type q
 
     // update display text
-    setGameStatText("Score: " + to_string(getScore()) + "    Level: " + to_string(getLevel())
-        + "    Lives: " + to_string(getLives()) + "    Burps: "+to_string(m_player->getBurps()));
+    // setGameStatText("Score: " + to_string(getScore()) + "    Level: " + to_string(getLevel())
+    //    + "    Lives: " + to_string(getLives()) + "    Burps: "+to_string(m_player->getBurps()));
     
+    setGameStatText(formatStatus(getScore(), getLevel(), getLives(), m_player->getBurps()));
+
     // ask each actor to do something
     for (auto actor : m_actorList)
     {
         if (actor->is_alive())
             actor->doSomething();
     }
-    m_player->doSomething();
+    if(m_player->is_alive())
+       m_player->doSomething();
     
     // delete dead actors
     auto actor = m_actorList.begin();
@@ -150,6 +165,23 @@ void StudentWorld::atSameGrid(Actor* attacker)
             && attacker->canAttack(actor))
         {
             actor->set_dead();
+            if (attacker->canGiveBonus())
+            {
+                actor->giveBonus();
+            }
         }
+        
     }
+}
+
+std::string StudentWorld::formatStatus(int score, int level, int lives, int burps) {
+    std::ostringstream oss;
+
+    // Set up formatting
+    oss << "Score: " << std::setfill('0') << std::setw(7) << score << "  "
+        << "Level: " << std::setw(2) << level << "  "
+        << "Lives: " << std::setw(2) << lives << "  "
+        << "Burps: " << std::setw(2) << burps;
+
+    return oss.str(); // Convert to string
 }

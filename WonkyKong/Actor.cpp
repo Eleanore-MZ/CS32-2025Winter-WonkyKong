@@ -3,7 +3,6 @@
 
 // Students:  Add code to this file, Actor.h, StudentWorld.h, and StudentWorld.cpp
 
-
 /*********PLAYER IMPLEMENTATION*********/
 
 void Player::doSomething()
@@ -68,9 +67,7 @@ void Player::keyPressed(int key)
 		}
 		break;
 	case KEY_PRESS_UP:
-		if ((getWorld()->isLadder(getX(), getY())
-			|| getWorld()->isLadder(getX(), getY() + 1))
-			&& !(getWorld()->isFloor(getX(), getY() + 1)))
+		if (getWorld()->isLadder(getX(), getY()) && !(getWorld()->isFloor(getX(), getY() + 1)))
 		{
 			getPositionInThisDirection(up, 1, newX, newY);
 			moveTo(newX, newY);
@@ -88,13 +85,11 @@ void Player::keyPressed(int key)
 			jumpSequence(m_jump_tick);
 			// Play the jump sound effect
 			getWorld()->playSound(SOUND_JUMP);
-			std::cerr << "SOUND_JUMP played" << std::endl;
 		}
 		break;
 	case KEY_PRESS_TAB:
 		if (getBurps() != 0)
 		{
-			std::cerr << "SOUND_BURP played" << std::endl;
 			getWorld()->playSound(SOUND_BURP);
 			int newX = getX(), newY = getY();
 			getPositionInThisDirection(getDirection(), 1, newX, newY);
@@ -172,13 +167,16 @@ void ExtraLifeGoodie::doSomething()
 
 void ExtraLifeGoodie::set_dead()
 {
-	getWorld()->increaseScore(getPoint());
-	getWorld()->incLives();
+	giveBonus();
 	Goodie::set_dead();
 	getWorld()->playSound(SOUND_GOT_GOODIE);
-	std::cerr << "SOUND_GOT_GOODIE played" << std::endl;
 }
 
+void ExtraLifeGoodie::giveBonus() const
+{
+	getWorld()->increaseScore(getPoint());
+	getWorld()->incLives();
+}
 
 /*********GARLICGOODIE IMPLEMENTATION*********/
 
@@ -191,14 +189,16 @@ void GarlicGoodie::doSomething()
 
 void GarlicGoodie::set_dead()
 {
-	
-	getWorld()->increaseScore(getPoint());
-	getWorld()->receiveBurp(getBurp());
+	giveBonus();
 	Goodie::set_dead();
 	getWorld()->playSound(SOUND_GOT_GOODIE);
-	std::cerr << "SOUND_GOT_GOODIE played" << std::endl;
 }
 
+void GarlicGoodie::giveBonus() const
+{
+	getWorld()->increaseScore(getPoint());
+	getWorld()->receiveBurp(getBurp());
+}
 
 /*********BURP IMPLEMENTATION*********/
 
@@ -249,10 +249,10 @@ void Fireball::doSomething()
 		getWorld()->getPlayer()->set_dead();
 		return;
 	}
-	if (m_tick_timer < 10) m_tick_timer++;
+	if (getTickTimer() < 10) incTickTimer();
 	else
 	{
-		m_tick_timer = 0;
+		setTickTimerToZero();
 		//If the Fireball¡¯s current square is climbable, there is no solid object above the 
 		// Fireball, and the Fireball is not in a climbing down state
 		if ((getWorld()->isLadder(getX(), getY()))
@@ -312,7 +312,10 @@ void Fireball::set_dead()
 {
 	Enemy::set_dead();
 	getWorld()->playSound(SOUND_ENEMY_DIE);
-	std::cerr << "SOUND_ENEMY_DIE played" << std::endl;
+}
+
+void Fireball::giveBonus() const
+{
 	getWorld()->increaseScore(getPoint());
 	if (randInt(1, 3) == 3)
 		getWorld()->addActor(new GarlicGoodie(getWorld(), getX(), getY()));
@@ -328,9 +331,6 @@ void Barrel::doSomething()
 		getWorld()->getPlayer()->set_dead();
 		return;
 	}
-	// If there is a destructive entity (e.g., a Bonfire) 
-	// in the same square as the Barrel, the Barrel: 
-	// Must set its status to dead. Immediately return.
 	
 	if (!(getWorld()->isFloor(getX(), getY() - 1)))
 	{
@@ -345,10 +345,10 @@ void Barrel::doSomething()
 		else setDirection(left);
 	}
 	
-	if (m_tick_timer < 10) m_tick_timer++;
+	if (getTickTimer() < 10) incTickTimer();
 	else
 	{
-		m_tick_timer = 0;
+		setTickTimerToZero();
 		int newX = getX(), newY = getY();
 		getPositionInThisDirection(getDirection(), 1, newX, newY);
 		if (getWorld()->isFloor(newX, newY))
@@ -369,13 +369,12 @@ void Barrel::doSomething()
 void Barrel::set_dead()
 {
 	Enemy::set_dead();
-	getWorld()->playSound(SOUND_ENEMY_DIE);
-	getWorld()->increaseScore(getPoint());
 }
 
-void Barrel::attack()
+void Barrel::giveBonus() const
 {
-
+	getWorld()->playSound(SOUND_ENEMY_DIE);
+	getWorld()->increaseScore(getPoint());
 }
 
 /*********KOOPA IMPLEMENTATION*********/
@@ -391,10 +390,10 @@ void Koopa::doSomething()
 		return;
 	}
 	if (m_freeze_cooldown_timer > 0) m_freeze_cooldown_timer--;
-	if (m_tick_timer < 10) m_tick_timer++;
+	if (getTickTimer() < 10) incTickTimer();
 	else
 	{
-		m_tick_timer = 0;
+		setTickTimerToZero();
 		int newX = getX(), newY = getY();
 		getPositionInThisDirection(getDirection(), 1, newX, newY);
 		if (getWorld()->isFloor(newX, newY) 
@@ -420,7 +419,10 @@ void Koopa::set_dead()
 {
 	Enemy::set_dead();
 	getWorld()->playSound(SOUND_ENEMY_DIE);
-	std::cerr << "SOUND_ENEMY_DIE played" << std::endl;
+}
+
+void Koopa::giveBonus() const
+{
 	getWorld()->increaseScore(getPoint());
 	if (randInt(1, 3) == 3)
 		getWorld()->addActor(new ExtraLifeGoodie(getWorld(), getX(), getY()));
@@ -451,9 +453,9 @@ void Kong::doSomething()
 	}
 	else m_barrel_timer++;
 
-	if (m_tick_timer == 5)
+	if (getTickTimer() == 5)
 	{
-		m_tick_timer = 0;
+		setTickTimerToZero();
 		if (m_fleeing)
 		{
 			if (getY() + 1 < VIEW_HEIGHT)
@@ -466,5 +468,5 @@ void Kong::doSomething()
 			}
 		}
 	}
-	else m_tick_timer++;
+	else incTickTimer();
 }

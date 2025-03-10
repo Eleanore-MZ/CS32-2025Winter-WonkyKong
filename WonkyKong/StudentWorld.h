@@ -18,8 +18,8 @@ public:
   virtual int init();
   virtual int move();
   virtual void cleanUp();
+  std::string formatStatus(int score, int level, int lives, int burps);
 
-  
   bool isFloor(int x, int y) { return (m_lev->getContentsOf(x, y)) == Level::floor; }
   bool isLadder(int x, int y) { return (m_lev->getContentsOf(x, y)) == Level::ladder; }
 

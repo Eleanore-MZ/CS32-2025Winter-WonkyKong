@@ -14,18 +14,18 @@ class Actor:public GraphObject
 public:
 	Actor(StudentWorld* world, int imageID, int startX, int startY, int dir = 0, bool alive = true) 
 		:GraphObject(imageID, startX, startY, dir), m_alive(alive), m_world(world) {}
-	virtual void doSomething() = 0; // change to pure virtual!!!
-	bool is_alive() { return m_alive; }
+	virtual void doSomething() = 0;
+	bool is_alive() const { return m_alive; }
 	virtual void set_dead() { m_alive = false; }
-	virtual bool canAttack(Actor* attacked) { return false; }
-	virtual bool isEnemy() { return false; }
-	virtual bool isBarrel() { return false; }
-	
-	StudentWorld* getWorld() { return m_world; }
+	virtual bool canAttack(Actor* attacked) const { return false; }
+	virtual bool isEnemy() const { return false; }
+	virtual bool isBarrel() const { return false; }
+	virtual bool canGiveBonus() const { return false; }
+	StudentWorld* getWorld() const { return m_world; }
+	virtual void giveBonus() const {}
 private:
 	bool m_alive;
 	StudentWorld* m_world;
-	bool m_canGiveBonus = false;
 };
 
 //************IMMOVABLE ACTOR**************//
@@ -36,7 +36,6 @@ public:
 	ImmovableActor(StudentWorld* world, int imageID, int startX, int startY, int dir = none) 
 		:Actor(world,imageID, startX, startY, dir, true) {}
 	virtual void doSomething() = 0;
-private:
 };
 
 
@@ -62,10 +61,10 @@ public:
 	Goodie(StudentWorld* world, int imageID, int startX, int startY, int bonusPoint) 
 		:ImmovableActor(world, imageID, startX, startY),m_bonusPoint(bonusPoint) {}
 	virtual void doSomething() {}
-	
 protected:
-	int getPoint() { return m_bonusPoint; }
+	int getPoint() const { return m_bonusPoint; }
 	virtual void giveBonus() {}
+
 private:
 	int m_bonusPoint;
 };
@@ -76,6 +75,7 @@ public:
 	ExtraLifeGoodie(StudentWorld* world, int startX, int startY)
 		:Goodie(world, IID_EXTRA_LIFE_GOODIE, startX, startY, 50) {}
 	void doSomething();
+	void giveBonus() const;
 protected:
 	void set_dead();
 };
@@ -88,7 +88,8 @@ public:
 	void doSomething();
 protected:
 	void set_dead();
-	int getBurp() { return m_bonusBurp; }
+	void giveBonus() const;
+	int getBurp() const { return m_bonusBurp; }
 private:
 	int m_bonusBurp = 5;
 };
@@ -107,9 +108,9 @@ public:
 	Burp(StudentWorld* world, int startX, int startY, int dir)
 		:Attack(world, IID_BURP, startX, startY, dir) {}
 	void doSomething();
-	bool canAttack(Actor* attacked) { return attacked->isEnemy(); }
+	bool canAttack(Actor* attacked) const { return attacked->isEnemy(); }
 	void attack();
-
+	bool canGiveBonus() const { return true; }
 private:
 	int remaining_tick = 5;
 };
@@ -121,7 +122,7 @@ public:
 		:Attack(world, IID_BONFIRE, startX,startY,-1) {}
 	void doSomething();
 	void attack();
-	bool canAttack(Actor* attacked) { return attacked->isBarrel(); }
+	bool canAttack(Actor* attacked) const { return attacked->isBarrel(); }
 };
 
 //************MOVABLE ACTOR**************//
@@ -131,7 +132,6 @@ class MovableActor :public Actor
 public:
 	MovableActor(StudentWorld* world, int imageID, int startX, int startY, int dir) 
 		: Actor(world, imageID, startX, startY, dir, true) {}
-	virtual void is_attacked() {}
 };
 
 class Player :public MovableActor
@@ -142,18 +142,17 @@ public:
 	virtual void doSomething();
 	void keyPressed(int key);
 
-	int getBurps() { return m_burps; }
+	int getBurps() const { return m_burps; }
 	void PlayerReceiveBurp(int x) { m_burps += x; }
 
 	// freeze
-	bool is_frozen() { return m_frozen; }
+	bool is_frozen() const { return m_frozen; }
 	void set_frozen() { m_frozen = true; m_freeze_timer = 50; }
 
 	// jump
-	bool is_jumping() { return m_jumping; }
+	bool is_jumping() const { return m_jumping; }
 	void jumpSequence(int tick);
 	void terminateJump() { m_jump_tick = -1; m_jumping = false; }
-
 	void set_dead();
 private:
 	int m_burps = 0;
@@ -170,7 +169,12 @@ class Enemy :public MovableActor
 public:
 	Enemy(StudentWorld* world, int imageID, int startX, int startY, int dir)
 		:MovableActor(world, imageID, startX, startY, dir) {}
-	bool isEnemy() { return true; }
+	virtual bool isEnemy() const { return true; }
+	void incTickTimer() { m_tick_timer++; }
+	int getTickTimer() const { return m_tick_timer; }
+	void setTickTimerToZero() { m_tick_timer = 0; }
+private:
+	int m_tick_timer = 0;
 };
 
 class Fireball :public Enemy
@@ -180,10 +184,10 @@ public:
 		:Enemy(world, IID_FIREBALL, startX, startY, randInt(0, 1) * 180) {}
 	void doSomething();
 	void set_dead();
-	int getPoint() { return m_bonusPoint; }
+	int getPoint() const { return m_bonusPoint; }
+	void giveBonus() const;
 private:
 	int m_bonusPoint = 100;
-	int m_tick_timer = 0;
 	int m_climbing = 0; //0: non climbing; 1: climbing down; 2: climbing up
 };
 
@@ -194,10 +198,10 @@ public:
 		:Enemy(world, IID_KOOPA, startX, startY, randInt(0, 1) * 180) {}
 	void doSomething();
 	void set_dead();
-	int getPoint() { return m_bonusPoint; }
+	int getPoint() const { return m_bonusPoint; }
+	void giveBonus() const;
 private:
 	int m_freeze_cooldown_timer = 0;
-	int m_tick_timer = 0;
 	int m_bonusPoint = 100;
 };
 
@@ -206,14 +210,13 @@ class Barrel :public Enemy
 public:
 	Barrel(StudentWorld* world, int startX, int startY, int dir)
 		:Enemy(world, IID_BARREL, startX, startY, dir) {}
-	bool isBarrel() { return true; }
+	bool isBarrel() const { return true; }
 	void doSomething();
 	void set_dead();
-	int getPoint() { return m_bonusPoint; }
-	void attack();
+	int getPoint() const { return m_bonusPoint; }
+	void giveBonus() const;
 private:
 	int m_bonusPoint = 100;
-	int m_tick_timer = 0;
 	bool m_falling = false;
 };
 
@@ -223,10 +226,10 @@ public:
 	Kong(StudentWorld* world, int startX, int startY, int dir)
 		:Enemy(world, IID_KONG, startX, startY, dir) {}
 	void doSomething();
-	int getPoint() { return m_bonusPoint; }
+	int getPoint() const { return m_bonusPoint; }
+	virtual bool isEnemy() const { return false; }
 private:
 	bool m_fleeing = false;
-	int m_tick_timer = 0;
 	int m_barrel_timer = 0;
 	int m_bonusPoint = 1000;
 };
